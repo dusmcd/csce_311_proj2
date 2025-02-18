@@ -9,6 +9,8 @@ class BoolExprClient {
 
     // connect to local server using clientSocket_
     bool Connect();
+
+    ::ssize_t GetSpecialChars(std::string* buffer);
     
     // formats the T/F values with the unit-separator(US) char between values
     const std::string FormatMessage(int argc, char** argv, char US, char EOT);
