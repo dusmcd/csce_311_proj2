@@ -48,6 +48,7 @@ int main(int argc, char** argv) {
 
     // get client request
     // respond to client request
+    std::cout << "Connection to client ended\n";
   }
   
   return 0;

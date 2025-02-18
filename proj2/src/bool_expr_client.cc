@@ -35,11 +35,14 @@ const std::string BoolExprClient::FormatMessage(int argc, char** argv, char US, 
   return bytesRead;
 }
 
+::ssize_t BoolExprClient::RequestToServer(char eot, const std::string* msg) {
+
+}
+
 
 
 int main(int argc, char** argv) {
-  std::string tmpPath = "/tmp/";
-  std::string SOCKET_PATH = tmpPath.append(argv[1]);
+  std::string SOCKET_PATH = argv[1];
     
   ::DomainSocketClient clientSocket = ::DomainSocketClient(SOCKET_PATH.c_str());
   ::BoolExprClient client = ::BoolExprClient(clientSocket);
@@ -61,7 +64,7 @@ int main(int argc, char** argv) {
 
   const char US = buffer[0];
   const char EOT = buffer[1];
-  std::cout << "Unit separator: " << static_cast<int>(US) << "\n";
+  std::cout << "Unit separator: " << std::oct << static_cast<int>(US) << "\n";
   std::cout << "EOT: " << static_cast<int>(EOT) << "\n";
   std::string message = client.FormatMessage(argc, argv, US, EOT);
   return 0;

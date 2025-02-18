@@ -1,7 +1,7 @@
 #ifndef PROJ2_BOOL_EXPR_SERVER_H
 #define PROJ2_BOOL_EXPR_SERVER_H
 
-#include "../../ipc/include/domain_socket.h"
+#include <domain_socket.h>
 #include <string>
 
 class BoolExprServer {
