@@ -35,8 +35,16 @@ const std::string BoolExprClient::FormatMessage(int argc, char** argv, char US, 
   return bytesRead;
 }
 
-::ssize_t BoolExprClient::RequestToServer(char eot, const std::string* msg) {
+::ssize_t BoolExprClient::WriteToServer(char eot, std::string msg) {
+  ::ssize_t bytesRead = clientSocket_.Write(msg, eot);
+  if (bytesRead == -1)
+    return -1;
+  
+    return bytesRead;
+}
 
+::ssize_t BoolExprClient::ReadFromServer(std::string* buffer, char eot) {
+  return clientSocket_.Read(eot, buffer);
 }
 
 
@@ -54,10 +62,12 @@ int main(int argc, char** argv) {
   }
 
   // if we get here, we have successfully connected to the server
+  std::cout << "BoolExprClient connecting...\n";
 
   // read US and EOT values from server
   std::string buffer;
   if (client.GetSpecialChars(&buffer) == -1) {
+    std::cerr << "Error getting US and EOT characters from server\n";
     exit(1);
     return -1;
   }
@@ -67,5 +77,25 @@ int main(int argc, char** argv) {
   std::cout << "Unit separator: " << std::oct << static_cast<int>(US) << "\n";
   std::cout << "EOT: " << static_cast<int>(EOT) << "\n";
   std::string message = client.FormatMessage(argc, argv, US, EOT);
+
+  ::ssize_t bytesWritten = client.WriteToServer(EOT, message);
+  if (bytesWritten == -1) {
+    std::cerr << "Error writing to server\n";
+    exit(1);
+    return -1;
+  }
+
+  // read from server
+  std::string response;
+  ::ssize_t bytesRead = client.ReadFromServer(&response, EOT);
+  if (bytesRead == -1) {
+    std::cerr << "Error reading from server\n";
+    exit(1);
+    return -1;
+  }
+
+  // output results...
+  std::cout << "Finished with " << bytesRead << "B received, " << bytesWritten << "B sent.\n";
+  std::cout << "Results\n";
   return 0;
 }

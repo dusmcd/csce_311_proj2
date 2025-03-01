@@ -1,5 +1,9 @@
 #include <bool_expr_server.h>
 #include <string>
+#include <bool_expr_parser.h>
+#include <iostream>
+#include <fstream>
+#include <array>
 
 bool BoolExprServer::Connect() {
   freopen("/dev/null", "r", stdin);
@@ -16,12 +20,57 @@ int BoolExprServer::AcceptConnection() {
   return client_req_socket_fd;
 }
 
-::ssize_t BoolExprServer::RespondToClient(int client_req_socket_fd, const std::string msg) {
-  std::cout << "Client connection received...\n";
+::ssize_t BoolExprServer::WriteToClient(int client_req_socket_fd, const std::string msg) {
   ::ssize_t bytesWritten = serverSocket_.Write(client_req_socket_fd, msg);
-  std::cout << bytesWritten << " bytes written to client\n";
-
   return bytesWritten;
+}
+
+
+::ssize_t BoolExprServer::ReadFromClient(int client_req_socket_fd, std::string* msg) {
+  ::ssize_t bytesRead = serverSocket_.Read(client_req_socket_fd, msg);
+  return bytesRead;
+}
+
+
+std::array<int, 3> BoolExprServer::ProcessClientRequest(const std::string& msg, char US, std::string& fileName) {
+  std::string booleanVals = ::Explode(msg.c_str(), US);
+  std::unordered_map<char, bool> valMap = ::BuildMap(booleanVals);
+  std::array<int, 3> evaluations = {};
+
+  std::ifstream inputFile(fileName);
+  inputFile.seekg(0, inputFile.beg); // set cursor to beginning of file
+  if (inputFile.is_open()) {
+    std::string line;
+    while (std::getline(inputFile, line)) {
+      ::BooleanExpressionParser parser(line, valMap);
+      bool result = parser.Parse();
+
+      if (parser.HasError())
+        evaluations[2]++;
+      else if (result)
+        evaluations[0]++;
+      else
+        evaluations[1]++;
+    }
+    inputFile.close();
+    return evaluations;
+  }
+  else {
+    std::cerr << "Cannot open file\n";
+  }
+
+  return evaluations;
+}
+
+std::string BoolExprServer::CreateClientResponse(std::array<int, 3> results, char US) {
+  std::string result;
+  for (int i = 0; i < 3; i++) {
+    result.append(std::to_string(results[i]));
+    if (i != 2) {
+      result += US;
+    }
+  }
+  return result;
 }
 
 int main(int argc, char** argv) {
@@ -40,15 +89,40 @@ int main(int argc, char** argv) {
 
   while (true) {
     int client_req_socket_fd = server.AcceptConnection();
+    std::cout << "Client connected\n";
 
     // respond with unit-separator (US) and end of transmission (EOT)
     std::string msg = "";
     msg += US;
-    ::ssize_t bytesWritten = server.RespondToClient(client_req_socket_fd, msg);
+    ::ssize_t bytesWritten = server.WriteToClient(client_req_socket_fd, msg);
+    if (bytesWritten == -1) {
+      std::cerr << "Error writing to client\n";
+      continue;
+    }
 
     // get client request
-    // respond to client request
-    std::cout << "Connection to client ended\n";
+    std::string msgFromClient;
+    ::ssize_t bytesRead = server.ReadFromClient(client_req_socket_fd, &msgFromClient);
+    if (bytesRead == -1) {
+      std::cout << "Error reading from client\n";
+      continue;
+    }
+    else {
+      // process client request
+      std::string fileName;
+      fileName.append(boolExprFile);
+      std::array<int, 3> result = server.ProcessClientRequest(msgFromClient, US, fileName);
+      std::string payload = server.CreateClientResponse(result, US);
+      // send respone
+      bytesWritten = server.WriteToClient(client_req_socket_fd, payload);
+    }
+
+    if (bytesWritten == -1) {
+      std::cerr << "Error writing to client\n";
+      continue;
+    }
+    std::cout << "\t" << bytesWritten << "B sent, " << bytesRead << "B received.\n";
+    std::cout << "Client disconnected\n";
   }
   
   return 0;
