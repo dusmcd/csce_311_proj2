@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <array>
+#include <signal.h>
 
 bool BoolExprServer::Connect() {
   freopen("/dev/null", "r", stdin);
@@ -53,10 +54,7 @@ std::array<int, 3> BoolExprServer::ProcessClientRequest(const std::string& msg, 
     else
       evaluations[1]++;
   }
-  for (int i = 0; i < 3; i++)
-    std::cout << "evaluations[" << i << "]: " << evaluations[i] << ", ";
-  
-  std::cout << std::endl;
+   
   inputFile.close();
   return evaluations;
   
@@ -70,11 +68,13 @@ std::string BoolExprServer::CreateClientResponse(std::array<int, 3> results, cha
       result += US;
     }
   }
-  std::cout << "sent to client: " << result << "\n";
   return result;
 }
 
 int main(int argc, char** argv) {
+  if (signal(SIGPIPE, SIG_IGN))
+    std::cout << "Broken pipe\n";
+
   const char* boolExprFile = argv[1];
   std::string SOCKET_PATH = argv[2];
   char US = argv[3][0];

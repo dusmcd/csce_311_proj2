@@ -1,7 +1,7 @@
 #include <bool_expr_client.h>
 #include <string>
 #include <iostream>
-
+#include <signal.h>
 
 bool BoolExprClient::Connect() {
   freopen("/dev/null", "r", stdin);
@@ -77,6 +77,8 @@ int main(int argc, char** argv) {
   ::DomainSocketClient clientSocket = ::DomainSocketClient(SOCKET_PATH.c_str());
   ::BoolExprClient client = ::BoolExprClient(clientSocket);
 
+  if (signal(SIGPIPE, SIG_IGN))
+    std::cout << "Writer disconnected\n";
 
   if (!client.Connect()) {
     exit(1);
