@@ -37,14 +37,36 @@ const std::string BoolExprClient::FormatMessage(int argc, char** argv, char US, 
 
 ::ssize_t BoolExprClient::WriteToServer(char eot, std::string msg) {
   ::ssize_t bytesRead = clientSocket_.Write(msg, eot);
-  if (bytesRead == -1)
-    return -1;
-  
-    return bytesRead;
+    
+  return bytesRead;
 }
 
 ::ssize_t BoolExprClient::ReadFromServer(std::string* buffer, char eot) {
   return clientSocket_.Read(eot, buffer);
+}
+
+std::array<int, 3> BoolExprClient::FormatResponse(const std::string res, char us, char eot) {
+  std::string val;
+  char current;
+  std::array<int, 3> results;
+  int i = 0;
+  int j = 0;
+
+  do {
+    current = res[i];
+    i++;
+
+    if (current == us || current == eot) {
+      results[j] = atoi(val.c_str());
+      j++;
+      val.clear();
+      continue;
+    }
+
+    val += current;
+  } while (current != eot);
+
+  return results;
 }
 
 
@@ -74,8 +96,6 @@ int main(int argc, char** argv) {
 
   const char US = buffer[0];
   const char EOT = buffer[1];
-  std::cout << "Unit separator: " << std::oct << static_cast<int>(US) << "\n";
-  std::cout << "EOT: " << static_cast<int>(EOT) << "\n";
   std::string message = client.FormatMessage(argc, argv, US, EOT);
 
   ::ssize_t bytesWritten = client.WriteToServer(EOT, message);
@@ -97,5 +117,9 @@ int main(int argc, char** argv) {
   // output results...
   std::cout << "Finished with " << bytesRead << "B received, " << bytesWritten << "B sent.\n";
   std::cout << "Results\n";
+  std::array<int, 3> results = client.FormatResponse(response, US, EOT);
+  std::cout << "True Evaluations:\t" << results[0] << "\n";
+  std::cout << "False Evaluations:\t" << results[1] << "\n";
+  std::cout << "Could Not Evaluate\t" << results[2] << "\n";
   return 0;
 }

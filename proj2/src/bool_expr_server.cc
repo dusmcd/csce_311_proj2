@@ -39,27 +39,27 @@ std::array<int, 3> BoolExprServer::ProcessClientRequest(const std::string& msg, 
 
   std::ifstream inputFile(fileName);
   inputFile.seekg(0, inputFile.beg); // set cursor to beginning of file
-  if (inputFile.is_open()) {
-    std::string line;
-    while (std::getline(inputFile, line)) {
-      ::BooleanExpressionParser parser(line, valMap);
-      bool result = parser.Parse();
 
-      if (parser.HasError())
-        evaluations[2]++;
-      else if (result)
-        evaluations[0]++;
-      else
-        evaluations[1]++;
-    }
-    inputFile.close();
-    return evaluations;
-  }
-  else {
-    std::cerr << "Cannot open file\n";
-  }
+  std::string line; // temp buffer
+  while (std::getline(inputFile, line)) {
+    const std::string token = ::Explode(line.c_str(), ' ');
+    ::BooleanExpressionParser parser(token, valMap);
+    bool result = parser.Parse();
 
+    if (parser.HasError())
+      evaluations[2]++;
+    else if (result)
+      evaluations[0]++;
+    else
+      evaluations[1]++;
+  }
+  for (int i = 0; i < 3; i++)
+    std::cout << "evaluations[" << i << "]: " << evaluations[i] << ", ";
+  
+  std::cout << std::endl;
+  inputFile.close();
   return evaluations;
+  
 }
 
 std::string BoolExprServer::CreateClientResponse(std::array<int, 3> results, char US) {
@@ -70,6 +70,7 @@ std::string BoolExprServer::CreateClientResponse(std::array<int, 3> results, cha
       result += US;
     }
   }
+  std::cout << "sent to client: " << result << "\n";
   return result;
 }
 
