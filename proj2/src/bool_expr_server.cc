@@ -75,6 +75,12 @@ int main(int argc, char** argv) {
   if (signal(SIGPIPE, SIG_IGN))
     std::cout << "Broken pipe\n";
 
+  if (argc < 5) {
+    std::cerr << "Not enough arguments provided\n";
+    exit(1);
+    return -1;
+  }
+
   const char* boolExprFile = argv[1];
   std::string SOCKET_PATH = argv[2];
   char US = argv[3][0];

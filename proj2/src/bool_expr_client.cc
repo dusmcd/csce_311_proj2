@@ -72,6 +72,12 @@ std::array<int, 3> BoolExprClient::FormatResponse(const std::string res, char us
 
 
 int main(int argc, char** argv) {
+  if (argc < 3) {
+    std::cerr << "Not enough arguments provided\n";
+    exit(1);
+    return -1;
+  }
+
   std::string SOCKET_PATH = argv[1];
     
   ::DomainSocketClient clientSocket = ::DomainSocketClient(SOCKET_PATH.c_str());
@@ -79,7 +85,8 @@ int main(int argc, char** argv) {
 
   if (signal(SIGPIPE, SIG_IGN))
     std::cout << "Writer disconnected\n";
-
+  
+  
   if (!client.Connect()) {
     exit(1);
     return -1;
