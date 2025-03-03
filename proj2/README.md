@@ -13,6 +13,7 @@
     (e.g., T F T => a = True, b = False, c = True)
 
 # File Structure
+```
 proj2/
 +-- dat/
 |   +-- expr_10.txt
@@ -28,3 +29,5 @@ proj2/
 |
 +-- Makefile
 +-- README.md
+
+```
