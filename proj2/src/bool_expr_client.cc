@@ -73,7 +73,7 @@ std::array<int, 3> BoolExprClient::FormatResponse(const std::string res, char us
 
 int main(int argc, char** argv) {
   if (argc < 3) {
-    std::cerr << "Not enough arguments provided\n";
+    std::cout << "Usage: ./bool-expr-client <socket_id> <any number of boolean vals ('T' or 'F') separated by a space>\n";
     exit(1);
     return -1;
   }
@@ -97,7 +97,8 @@ int main(int argc, char** argv) {
 
   // read US and EOT values from server
   std::string buffer;
-  if (client.GetSpecialChars(&buffer) == -1) {
+  ::ssize_t bytesRead = client.GetSpecialChars(&buffer);
+  if (bytesRead == -1) {
     std::cerr << "Error getting US and EOT characters from server\n";
     exit(1);
     return -1;
@@ -116,8 +117,8 @@ int main(int argc, char** argv) {
 
   // read from server
   std::string response;
-  ::ssize_t bytesRead = client.ReadFromServer(&response, EOT);
-  if (bytesRead == -1) {
+  bytesRead += client.ReadFromServer(&response, EOT);
+  if ((bytesRead - 2) == -1) {
     std::cerr << "Error reading from server\n";
     exit(1);
     return -1;

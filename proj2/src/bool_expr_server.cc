@@ -56,6 +56,7 @@ std::array<int, 3> BoolExprServer::ProcessClientRequest(const std::string& msg, 
   }
    
   inputFile.close();
+  
   return evaluations;
   
 }
@@ -76,7 +77,7 @@ int main(int argc, char** argv) {
     std::cout << "Broken pipe\n";
 
   if (argc < 5) {
-    std::cerr << "Not enough arguments provided\n";
+    std::cout << "Usage: bool-expr-server <text_file> <socket_id> <unit_separator> <end_of_transmission>\n";
     exit(1);
     return -1;
   }
@@ -121,10 +122,10 @@ int main(int argc, char** argv) {
       std::array<int, 3> result = server.ProcessClientRequest(msgFromClient, US, fileName);
       std::string payload = server.CreateClientResponse(result, US);
       // send respone
-      bytesWritten = server.WriteToClient(client_req_socket_fd, payload);
+      bytesWritten += server.WriteToClient(client_req_socket_fd, payload);
     }
 
-    if (bytesWritten == -1) {
+    if ((bytesWritten - 2) == -1) {
       std::cerr << "Error writing to client\n";
       continue;
     }
