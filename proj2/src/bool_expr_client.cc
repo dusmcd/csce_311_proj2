@@ -45,7 +45,8 @@ const std::string BoolExprClient::FormatMessage(int argc, char** argv, char US, 
   return clientSocket_.Read(eot, buffer);
 }
 
-std::array<int, 3> BoolExprClient::FormatResponse(const std::string res, char us, char eot) {
+std::array<int, 3> BoolExprClient::FormatResponse(std::string res, char us, char eot) {
+  res += eot;
   std::string val;
   char current;
   std::array<int, 3> results;

@@ -20,7 +20,7 @@ class BoolExprClient {
     // formats the T/F values with the unit-separator(US) char between values
     const std::string FormatMessage(int argc, char** argv, char US, char EOT);
 
-    std::array<int, 3> FormatResponse(const std::string res, char us, char eot);
+    std::array<int, 3> FormatResponse(std::string res, char us, char eot);
 
     
   private:
